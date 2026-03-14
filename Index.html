@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Checklist LSF — Prédio Métril</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#ffffff;--bg2:#f5f5f3;--bg3:#eeede9;
+    --text:#1a1a18;--text2:#6b6b67;--text3:#9a9a96;
+    --border:#e0dfd8;--border2:#c8c7c0;
+    --green:#1D9E75;--green-bg:#EAF3DE;--green-border:#9FE1CB;--green-text:#3B6D11;
+    --red:#D85A30;--red-bg:#FAECE7;--red-border:#F5C4B3;--red-text:#993C1D;
+    --amber:#EF9F27;--amber-bg:#FAEEDA;--amber-text:#633806;
+    --blue-bg:#E6F1FB;--blue-text:#185FA5;
+    --radius:8px;--radius-lg:12px;
+  }
+  @media(prefers-color-scheme:dark){
+    :root{
+      --bg:#1c1c1a;--bg2:#252523;--bg3:#2e2e2b;
+      --text:#f0efe8;--text2:#a0a09a;--text3:#6a6a65;
+      --border:#3a3a36;--border2:#4a4a46;
+      --green:#5DCAA5;--green-bg:#04342C;--green-border:#0F6E56;--green-text:#9FE1CB;
+      --red:#F0997B;--red-bg:#4A1B0C;--red-border:#993C1D;--red-text:#F5C4B3;
+      --amber:#EF9F27;--amber-bg:#412402;--amber-text:#FAC775;
+      --blue-bg:#042C53;--blue-text:#85B7EB;
+    }
+  }
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;color:var(--text);background:var(--bg3);min-height:100vh}
+  .app{max-width:900px;margin:0 auto;padding:1rem;background:var(--bg);min-height:100vh}
+  .header{border-bottom:1px solid var(--border);padding-bottom:1rem;margin-bottom:1.25rem}
+  .header-top{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+  .logo{width:32px;height:32px;background:var(--text);border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .logo svg{fill:var(--bg)}
+  .header h1{font-size:17px;font-weight:600;letter-spacing:-0.01em}
+  .header p{font-size:12px;color:var(--text2);line-height:1.5}
+  .obra-info{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1.25rem}
+  @media(max-width:600px){.obra-info{grid-template-columns:1fr 1fr}}
+  .info-field{background:var(--bg2);border-radius:var(--radius);padding:8px 12px;border:1px solid var(--border)}
+  .info-field label{display:block;font-size:11px;color:var(--text3);margin-bottom:3px;text-transform:uppercase;letter-spacing:0.04em}
+  .info-field input{width:100%;background:transparent;border:none;outline:none;font-size:13px;color:var(--text);font-family:inherit}
+  .progress-wrap{background:var(--bg2);border-radius:var(--radius-lg);padding:12px 16px;margin-bottom:1.25rem;border:1px solid var(--border)}
+  .progress-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+  .progress-pct{font-size:22px;font-weight:700;color:var(--text)}
+  .progress-sub{font-size:12px;color:var(--text2)}
+  .bar-wrap{height:8px;background:var(--border);border-radius:4px;overflow:hidden}
+  .bar-fill{height:100%;background:var(--green);border-radius:4px;transition:width 0.4s cubic-bezier(.4,0,.2,1)}
+  .save-status{font-size:11px;color:var(--text3);text-align:right;margin-top:6px}
+  .tabs-wrap{overflow-x:auto;margin-bottom:1rem;padding-bottom:2px}
+  .tabs{display:flex;gap:4px;min-width:max-content}
+  .tab{padding:6px 13px;border-radius:var(--radius);border:1px solid var(--border);font-size:12px;cursor:pointer;background:var(--bg);color:var(--text2);white-space:nowrap;transition:all 0.15s;font-family:inherit}
+  .tab:hover{background:var(--bg2);color:var(--text)}
+  .tab.active{background:var(--text);color:var(--bg);border-color:var(--text)}
+  .tab.done{border-color:var(--green);color:var(--green-text)}
+  .tab.active.done{background:var(--green);color:#fff;border-color:var(--green)}
+  .section{margin-bottom:1.25rem}
+  .section-title{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;padding:0 2px;display:flex;align-items:center;gap:6px}
+  .badge{display:inline-block;font-size:10px;padding:2px 7px;border-radius:10px;font-weight:600}
+  .b-red{background:var(--red-bg);color:var(--red-text)}
+  .b-green{background:var(--green-bg);color:var(--green-text)}
+  .b-amber{background:var(--amber-bg);color:var(--amber-text)}
+  .b-blue{background:var(--blue-bg);color:var(--blue-text)}
+  .alert{background:var(--amber-bg);border:1px solid var(--amber);border-radius:var(--radius);padding:10px 14px;margin-bottom:10px;font-size:12px;color:var(--amber-text);display:flex;gap:8px;line-height:1.5}
+  .alert-icon{font-size:15px;flex-shrink:0}
+  .check-item{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:var(--radius);border:1px solid var(--border);margin-bottom:5px;background:var(--bg);cursor:pointer;transition:background 0.12s,border-color 0.12s;user-select:none}
+  .check-item:hover{background:var(--bg2)}
+  .check-item.checked{background:var(--green-bg);border-color:var(--green-border)}
+  .check-item.critical:not(.checked){background:var(--red-bg);border-color:var(--red-border)}
+  .check-item.critical.checked{background:var(--green-bg);border-color:var(--green-border)}
+  .checkbox{width:18px;height:18px;border:1.5px solid var(--border2);border-radius:4px;flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-top:1px;transition:all 0.15s}
+  .check-item.checked .checkbox{background:var(--green);border-color:var(--green);color:#fff;font-size:11px}
+  .check-item.critical:not(.checked) .checkbox{border-color:var(--red)}
+  .check-text{flex:1;min-width:0}
+  .check-label{font-size:13px;font-weight:500;margin-bottom:2px;display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+  .check-desc{font-size:12px;color:var(--text2);line-height:1.55}
+  .obs-btn{font-size:11px;color:var(--text3);padding:2px 8px;border-radius:10px;border:1px solid var(--border);cursor:pointer;flex-shrink:0;margin-top:1px;background:var(--bg);font-family:inherit;transition:background 0.12s}
+  .obs-btn:hover{background:var(--bg2)}
+  .painel-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:5px;margin-bottom:6px}
+  .painel-btn{padding:6px 4px;border-radius:var(--radius);border:1px solid var(--border);font-size:11px;text-align:center;cursor:pointer;background:var(--bg);color:var(--text);font-family:inherit;transition:all 0.12s;line-height:1.3}
+  .painel-btn:hover{background:var(--bg2)}
+  .painel-btn.p-done{background:var(--green-bg);border-color:var(--green-border);color:var(--green-text);font-weight:600}
+  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:center;justify-content:center;padding:1rem}
+  .modal-overlay.open{display:flex}
+  .modal{background:var(--bg);border-radius:var(--radius-lg);padding:1.25rem;max-width:460px;width:100%;border:1px solid var(--border2);max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.2)}
+  .modal-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;gap:8px}
+  .modal h3{font-size:15px;font-weight:600;flex:1}
+  .modal-close{cursor:pointer;font-size:20px;color:var(--text2);line-height:1;padding:0 4px;flex-shrink:0}
+  .modal-close:hover{color:var(--text)}
+  .modal-desc{font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:10px;padding:8px;background:var(--bg2);border-radius:var(--radius)}
+  .obs-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:4px}
+  .obs-textarea{width:100%;border:1px solid var(--border2);border-radius:var(--radius);padding:8px;font-size:13px;font-family:inherit;color:var(--text);background:var(--bg);resize:vertical;min-height:80px;outline:none}
+  .obs-textarea:focus{border-color:var(--text2)}
+  .modal-footer{display:flex;gap:8px;margin-top:12px}
+  .btn{padding:7px 14px;border-radius:var(--radius);border:1px solid var(--border2);font-size:13px;cursor:pointer;color:var(--text);background:var(--bg);font-family:inherit;transition:background 0.12s}
+  .btn:hover{background:var(--bg2)}
+  .btn-primary{background:var(--text);color:var(--bg);border-color:var(--text)}
+  .btn-primary:hover{opacity:0.85}
+  .export-bar{margin-top:1.5rem;padding-top:1rem;border-top:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .export-bar span{font-size:12px;color:var(--text3);flex:1}
+  .sign-block{margin-top:1rem;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  @media(max-width:500px){.sign-block{grid-template-columns:1fr}}
+  .sign-field{border:1px solid var(--border);border-radius:var(--radius);padding:8px 12px}
+  .sign-field label{display:block;font-size:11px;color:var(--text3);margin-bottom:3px;text-transform:uppercase;letter-spacing:0.04em}
+  .sign-field input{width:100%;background:transparent;border:none;outline:none;font-size:13px;color:var(--text);font-family:inherit}
+  .footer{margin-top:2rem;padding-top:1rem;border-top:1px solid var(--border);font-size:11px;color:var(--text3);text-align:center;line-height:1.6}
+  @media print{.tabs-wrap,.export-bar,.obs-btn,.modal-overlay{display:none!important}.app{box-shadow:none}}
+</style>
+</head>
+<body>
+<div class="app">
+
+<div class="header">
+  <div class="header-top">
+    <div class="logo">
+      <svg viewBox="0 0 24 24" width="18" height="18"><path d="M3 21h18v-2H3v2zm0-4h18v-2H3v2zm0-4h18v-2H3v2zm0-4h18V7H3v2zm0-6v2h18V3H3z"/></svg>
+    </div>
+    <h1>Controle de Execução — Prédio Métril | Light Steel Frame</h1>
+  </div>
+  <p>Alojamento Araguari LTDA · Rua Luiz Leonardo de Paula, 239 · Quirinópolis-GO · Projeto CenterSteel 241220 · Data do projeto: 17/12/2024</p>
+</div>
+
+<div class="obra-info">
+  <div class="info-field"><label>Responsável técnico</label><input id="i-rt" placeholder="Nome e CREA" oninput="saveInfo()"></div>
+  <div class="info-field"><label>Data de início</label><input id="i-dt" type="date" oninput="saveInfo()"></div>
+  <div class="info-field"><label>Etapa atual</label><input id="i-etapa" placeholder="ex: Montagem 2º pav." oninput="saveInfo()"></div>
+</div>
+
+<div class="progress-wrap">
+  <div class="progress-top">
+    <span class="progress-pct" id="pct">0%</span>
+    <span class="progress-sub" id="prog-sub">0 de 0 itens concluídos</span>
+  </div>
+  <div class="bar-wrap"><div class="bar-fill" id="bar" style="width:0%"></div></div>
+  <div class="save-status" id="save-status">Progresso salvo automaticamente no navegador</div>
+</div>
+
+<div class="tabs-wrap">
+  <div class="tabs" id="tabs">
+    <div class="tab active" data-tab="0">🔩 Fixação / Radier</div>
+    <div class="tab" data-tab="1">1º Pav. Térreo</div>
+    <div class="tab" data-tab="2">Entrepisos / OSB</div>
+    <div class="tab" data-tab="3">2º Pavimento</div>
+    <div class="tab" data-tab="4">3º Pavimento</div>
+    <div class="tab" data-tab="5">4º Pavimento</div>
+    <div class="tab" data-tab="6">Reservatório</div>
+    <div class="tab" data-tab="7">Cobertura</div>
+    <div class="tab" data-tab="8">⚠ Reforços</div>
+  </div>
+</div>
+
+<div id="content"></div>
+
+<div class="export-bar">
+  <span>Progresso salvo automaticamente. Limpe o cache do navegador para resetar.</span>
+  <button class="btn" onclick="exportTXT()">Exportar relatório .txt</button>
+  <button class="btn" onclick="exportPrint()">Imprimir</button>
+  <button class="btn" onclick="limpar()">Resetar checklist</button>
+</div>
+
+<div class="sign-block">
+  <div class="sign-field"><label>Assinatura do responsável técnico</label><input id="i-sign" placeholder="Nome completo · CREA" oninput="saveInfo()"></div>
+  <div class="sign-field"><label>Data e hora da verificação</label><input id="i-ts" placeholder="dd/mm/aaaa hh:mm" oninput="saveInfo()"></div>
+</div>
+
+<div class="footer">
+  CenterSteel — Inteligência em Light Steel Frame · comercial@centersteel.com.br · (51) 3086.4585<br>
+  Av. Presidente Franklin Roosevelt, 75/77 · Porto Alegre/RS
+</div>
+
+</div><!-- .app -->
+
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="m-title"></h3>
+      <span class="modal-close" onclick="closeModal()">×</span>
+    </div>
+    <div class="modal-desc" id="m-desc"></div>
+    <div class="obs-label">Observações / não conformidades</div>
+    <textarea class="obs-textarea" id="m-obs" placeholder="Descreva não conformidades, data de correção, responsável pela correção..."></textarea>
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="saveObs()">Salvar</button>
+      <button class="btn" onclick="closeModal()">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = 'predioMetril_checklist_v1';
+let state = {checks:{}, obs:{}, info:{}};
+let activeTab = 0;
+let currentModalId = null;
+
+// ── DATA ──────────────────────────────────────────────────────────────────────
+const TABS = [
+  {label:'Fixação / Radier', items:[
+    {id:'rad01',crit:true,label:'Verificação do radier antes da montagem',desc:'Confirmar cura mínima do concreto (mín. 28 dias ou liberação estrutural), planeza (tolerância ±5mm/2m de régua), ausência de fissuras estruturais. Registrar com fotos e nível.'},
+    {id:'rad02',crit:true,label:'Rebaixo no contorno do radier',desc:'Verificar rebaixo para encaixe da placa cimentícia do painel LSF conforme detalhe construtivo págs. 3 e 4. O rebaixo evita entrada de água por baixo do painel. Confirmar dimensões e continuidade perimetral.'},
+    {id:'rad03',crit:true,label:'Locação dos pontos de ancoragem',desc:'Conferir posição de TODOS os pontos de chumbador conforme planta 01/15. Marcar com linha de náilon e prego. Conferir eixos e diagonais para ortogonalidade da planta.'},
+    {id:'rad04',crit:true,label:'Execução dos furos para chumbadores químicos',desc:'Chumbador químico AQI 380-PRO · Aço carbono 8.8 · M10 · hef=150mm · Ltot=200mm. Diâmetro e profundidade conforme fabricante. Limpar furos com soprador antes da injeção da resina. Aguardar cura da resina antes de aplicar carga.'},
+    {id:'rad05',crit:true,label:'Instalação dos suportes de ancoragem',desc:'Suporte de ancoragem 130×70×50mm, espessura t=3mm. Fixar ao chumbador com parafuso sextavado M8×75. Verificar nivelamento e alinhamento de cada suporte com nível de bolha. Tolerância: ±2mm em altura.'},
+    {id:'rad06',crit:false,label:'Gabarito de locação dos painéis',desc:'Marcar posição de todos os painéis do térreo sobre o radier com linha de náilon. Conferir eixos principais e diagonais para ortogonalidade. A posição da guia inferior define todo o alinhamento vertical da estrutura.'},
+    {id:'rad07',crit:false,label:'Conferência final de prumo e alinhamento dos suportes',desc:'Com todos os suportes instalados, verificar coplanaridade. Tolerância: ±3mm na posição horizontal, ±2mm em altura. Corrigir antes de iniciar montagem dos painéis.'},
+    {id:'rad08',crit:false,label:'Registro fotográfico dos chumbadores',desc:'Fotografar CADA ponto de ancoragem com identificação antes de cobrir. Incluir fotos do rebaixo executado, bitola dos chumbadores com fita métrica e alinhamento dos suportes.'}
+  ]},
+  {label:'1º Pav. Térreo', items:[
+    {id:'ter01',crit:true,label:'Recebimento e conferência dos painéis do térreo',desc:'Conferir painel a painel conforme planta 01/15. Painéis P101 a P163, PE101, PE102, PE103. Verificar identificação (número na seta), orientação, integridade física (sem dobras ou cortes indevidos).'},
+    {id:'ter02',crit:true,label:'REFORÇO: 18 painéis com 1 parafuso extra nas vergas',desc:'P102, P103, P105, P106, P108, P109, P110, P114, P115, P117, P118, P120, P121, P123, P124, P126, P141, P146 — 1 PARAFUSO EXTRA em TODAS as ligações, AMBOS OS LADOS, NAS VERGAS. Usar PARAFUSO PHILIPS. Verificar painel a painel.'},
+    {id:'ter03',crit:true,label:'REFORÇO: Painéis PE101, PE102, PE103 (escada/entrepiso)',desc:'Painéis especiais PE101, PE102, PE103 — verificar quantidade de parafusos extras conforme lista de reforços. Parafusos extras em TODAS as ligações, ambos os lados. Usar PARAFUSO PHILIPS.'},
+    {id:'ter04',crit:true,label:'Fixação inicial dos painéis — parafuso ponta agulha',desc:'Para PRÉ-MONTAGEM usar SOMENTE parafuso ponta agulha, conforme instrução impressa em TODOS os projetos. Não usar parafuso Philips nesta fase. Fixação definitiva somente após alinhamento aprovado.'},
+    {id:'ter05',crit:true,label:'Fixação definitiva da guia inferior no suporte de ancoragem',desc:'Após alinhamento e prumo aprovados pelo RT, fixar guia inferior (perfil U 100×41,3×20mm) ao suporte de ancoragem com parafuso M8×75. Torque conforme especificação. Não avançar sem esta etapa concluída.'},
+    {id:'ter05a',crit:true,label:'Verificação dos chumbadores fixando a estrutura no radier — painel a painel',desc:'Após posicionamento definitivo de CADA painel do 1º pavimento, verificar: (1) chumbador químico AQI 380-PRO M10 corretamente instalado no radier sob a guia inferior do painel; (2) suporte de ancoragem 130×70×50mm t=3mm posicionado entre guia e radier; (3) parafuso sextavado M8×75 fixando o suporte ao chumbador com aperto adequado; (4) guia inferior do painel fixada ao suporte. Verificar TODOS os pontos de ancoragem conforme marcação "2" na planta 01/15. Não cobrir com revestimento sem esta verificação documentada.'},
+    {id:'ter05b',crit:true,label:'Conferência do espaçamento e distribuição dos chumbadores perimetrais',desc:'Verificar que TODOS os pontos marcados com símbolo "2" na planta 01/15 possuem chumbador instalado. Atenção especial às quinas e cantos da edificação (PE101, PE102, PE103). Confirmar que nenhum ponto foi omitido. Distância máxima entre chumbadores conforme projeto — não deve haver guia inferior sem ancoragem ao radier.'},
+    {id:'ter05c',crit:true,label:'Inspeção visual e fotográfica dos chumbadores antes do fechamento',desc:'Antes de instalar qualquer revestimento externo (placa cimentícia ou similar), fotografar CADA ponto de chumbador com a estrutura já fixada, mostrando: chumbador, suporte, parafuso e guia inferior do painel. As fotos compõem o dossiê de obra e são exigíveis pelo RT e pelo projetista. Registrar data e identificação do painel em cada foto.'},
+    {id:'ter06',crit:false,label:'Direção dos montantes — conferência por painel',desc:'A seta na legenda do painel indica o LADO ONDE ESTÁ IMPRESSO O NÚMERO. Verificar direção dos montantes conforme planta 01/15. Inversão de painéis compromete a transferência de carga entre pavimentos.'},
+    {id:'ter07',crit:false,label:'Vãos de esquadrias — dimensionamento',desc:'Confirmar posição e dimensão de todos os vãos (janelas e portas) conforme legenda da planta 01/15 (linha tracejada = vão). Medir abertura antes de fixação definitiva dos painéis adjacentes.'},
+    {id:'ter08',crit:false,label:'Prumo e alinhamento geral do 1º pavimento',desc:'Com todos os painéis do térreo montados, verificar prumo com nível de bolha em cada canto e a cada 2 painéis. Alinhamento horizontal com linha de náilon. Fixar definitivamente somente após aprovação do RT.'},
+    {id:'ter09',crit:false,label:'Registro fotográfico — térreo finalizado',desc:'Fotografar todas as faces do edifício com painéis do térreo montados. Incluir close nos reforços executados nos 18 painéis críticos. Registrar pontos de fixação no radier.'}
+  ]},
+  {label:'Entrepisos / OSB', items:[
+    {id:'ent01',crit:true,label:'Montagem das treliças — entrepiso 2º pav. (prancha 02/15)',desc:'Instalar: V1A-1 (168un), V1A-2 (6un), V1B-1 (9un), V1B-2 (30un), V1B-3 (36un), V1B-4 (3un), V1B-5 (24un), V1B-6 (3un), V1B-7 (9un), V1B-8 (30un), V1C-1 a V1C-15, V1D-1 (9un), V1E-1 (3un), V1F-1 (3un), V1G-1 (6un), V1H-1 (27un), V1I-1 (12un). Atenção à direção da seta.'},
+    {id:'ent02',crit:true,label:'Chapas duplas "2×L" nos apoios das treliças',desc:'Verificar TODOS os pontos marcados com símbolo "2×Chapa L" nas plantas 02/15, 05/15 e 08/15. Estes pontos exigem chapa dupla de ligação. Conferir antes do fechamento com OSB — após OSB instalado não há acesso.'},
+    {id:'ent03',crit:true,label:'REFORÇO: V1E-1 e V1F-1 — 3 parafusos extras',desc:'V1E-1 (3 unidades) e V1F-1 (3 unidades) — 3 PARAFUSOS EXTRAS em TODAS as ligações, AMBOS OS LADOS. São os elementos com maior nível de reforço de todo o projeto. Usar PARAFUSO PHILIPS.'},
+    {id:'ent04',crit:true,label:'Travejamento em fita — plano horizontal obrigatório',desc:'TODOS os travejamentos em fita devem ser parafusados POR BAIXO das treliças no plano horizontal. Verificar: VE101 (2º pav.), DG101-DG116 (2º pav.), VE201 (3º pav.), DG201-DG216 (3º pav.), VE301 (4º pav.), DG301-DG316 (4º pav.). Ver perspectiva na prancha 02/15.'},
+    {id:'ent05',crit:true,label:'REFORÇO: PE104-PE107 (2º), PE201-PE204 (3º), PE301-PE304 (4º)',desc:'Painéis especiais de escada/entrepiso: PE104, PE105, PE106, PE107, PE201, PE202, PE203, PE204, PE301, PE302, PE303, PE304 — 2 PARAFUSOS EXTRAS em TODAS as ligações, AMBOS OS LADOS. Usar PARAFUSO PHILIPS.'},
+    {id:'ent06',crit:true,label:'Banda acústica — instalar ANTES do OSB',desc:'Fixar banda acústica ACIMA das treliças antes de instalar qualquer placa de OSB. Obrigatório em TODOS os entrepisos (ver pranchas 02, 05, 06, 08, 09/15). Não instalar OSB sem a banda.'},
+    {id:'ent07',crit:true,label:'Fixação das placas de OSB 18,3mm',desc:'Placas TRANSVERSAIS às treliças. Espaçamento parafusos: 15cm na periferia, 30cm entre placas. Junta de dilatação de 3mm entre placas. Rebaixo de 1500mm conforme planta. OSB deve cobrir toda a área do entrepiso sem lacunas.'},
+    {id:'ent08',crit:false,label:'Parafusos de entrepiso — pontos entre pavimentos',desc:'Verificar pontos de parafuso entrepiso (círculos vermelhos nas plantas 04/15 e 07/15) antes de montar o pavimento seguinte. Usar parafuso Perf. Pont#10 14X2 Cab.Flang. Distância 80mm do bordo conforme detalhe.'},
+    {id:'ent09',crit:false,label:'Montagem dos degraus da escada',desc:'Montar conforme perspectiva escada (pranchas 02, 05, 08/15). Usar 2×Chapa L em cada degrau. Medidas: espelho=15cm, piso=268+530mm+102mm. Conferir nível e alinhamento de cada degrau.'},
+    {id:'ent10',crit:false,label:'Barra roscada de conexão entre pavimentos',desc:'Barra roscada Ltot=500mm nos pontos indicados nas pranchas 04/15 e 07/15 (2º e 3º pav.). Instalar cantoneira + parafuso conforme detalhe construtivo págs. 5 e 10. Ver perspectiva de fixação.'}
+  ]},
+  {label:'2º Pavimento', items:[
+    {id:'2p01',crit:true,label:'Recebimento e conferência dos painéis — 2º pav.',desc:'Painéis P201 a P263 conforme planta 04/15. Verificar identificação, seta de orientação, quantidade (sem faltantes) e integridade física de cada painel. Conferir no recebimento, não na hora da montagem.'},
+    {id:'2p02',crit:true,label:'REFORÇO: 18 painéis com 1 parafuso extra nas vergas',desc:'P202, P203, P205, P206, P208, P209, P210, P214, P215, P217, P218, P220, P221, P223, P224, P226, P241, P246 — 1 PARAFUSO EXTRA em TODAS as ligações, AMBOS OS LADOS, NAS VERGAS. Usar PARAFUSO PHILIPS.'},
+    {id:'2p03',crit:true,label:'Barra roscada — conexão 2º pav. com térreo',desc:'Instalar barras roscadas Ltot=500mm nos pontos indicados (planta 04/15). Verificar cantoneira, parafuso e aperto adequado. Ver detalhe construtivo pág. 10. Elemento crítico para a continuidade estrutural.'},
+    {id:'2p04',crit:false,label:'Direção dos montantes e prumo — 2º pav.',desc:'Verificar direção dos montantes conforme planta 04/15. Prumo individual de cada painel e alinhamento geral do pavimento antes de fixar definitivamente. Tolerância de prumo: ±3mm/m.'},
+    {id:'2p05',crit:false,label:'Vãos de esquadrias — 2º pav.',desc:'Confirmar todos os vãos conforme legenda da planta 04/15. Dimensionar abertura antes de fixação definitiva dos painéis adjacentes. Janelas e portas dos apartamentos.'},
+    {id:'2p06',crit:false,label:'OSB do entrepiso 3º pav. sobre 2º pav.',desc:'Após aprovação do 2º pav., instalar OSB 18,3mm conforme planta 03/15. Banda acústica instalada previamente. Juntas 3mm. Rebaixo 1500mm. Parafusos 15cm periferia / 30cm entre placas.'}
+  ]},
+  {label:'3º Pavimento', items:[
+    {id:'3p01',crit:true,label:'Recebimento e conferência dos painéis — 3º pav.',desc:'Painéis P301 a P363 conforme planta 07/15. Verificar identificação, seta de orientação, quantidade e integridade física de cada painel.'},
+    {id:'3p02',crit:true,label:'REFORÇO: 18 painéis com 1 parafuso extra nas vergas',desc:'P302, P303, P305, P306, P308, P309, P310, P314, P315, P317, P318, P320, P321, P323, P324, P326, P341, P346 — 1 PARAFUSO EXTRA em TODAS as ligações, AMBOS OS LADOS, NAS VERGAS. Usar PARAFUSO PHILIPS.'},
+    {id:'3p03',crit:true,label:'Barra roscada — conexão 3º pav. com 2º pav.',desc:'Instalar barras roscadas Ltot=500mm nos pontos indicados (planta 07/15). Verificar cantoneira, parafuso e aperto. Ver detalhe construtivo pág. 10.'},
+    {id:'3p04',crit:false,label:'Direção dos montantes e prumo — 3º pav.',desc:'Verificar direção dos montantes conforme planta 07/15. Prumo individual e alinhamento geral antes do fechamento com OSB do 4º pav.'},
+    {id:'3p05',crit:false,label:'Travejamentos em fita — entrepiso 4º pav.',desc:'Verificar VE201 e DG201-DG216 no entrepiso (planta 05/15). Fitas parafusadas POR BAIXO no plano horizontal. Confirmar antes de cobrir com OSB.'},
+    {id:'3p06',crit:false,label:'OSB do entrepiso 4º pav. sobre 3º pav.',desc:'OSB 18,3mm conforme planta 06/15. Rebaixo 1500mm. Banda acústica antes das placas. Parafusos 15cm periferia / 30cm entre placas. Juntas 3mm.'}
+  ]},
+  {label:'4º Pavimento', items:[
+    {id:'4p01',crit:true,label:'Recebimento e conferência dos painéis — 4º pav.',desc:'Painéis P401 a P464 conforme planta 10/15. Verificar identificação, seta de orientação, quantidade e integridade física. Atenção especial: pavimento mais alto, qualidade da montagem afeta estabilidade da cobertura.'},
+    {id:'4p02',crit:true,label:'REFORÇO: 18 painéis com 1 parafuso extra nas vergas',desc:'P402, P403, P405, P406, P408, P409, P410, P414, P415, P417, P418, P420, P421, P423, P424, P426, P441, P446 — 1 PARAFUSO EXTRA em TODAS as ligações, AMBOS OS LADOS, NAS VERGAS. Usar PARAFUSO PHILIPS.'},
+    {id:'4p03',crit:false,label:'Parafusos entrepiso — 3º ao 4º pav.',desc:'Verificar todos os pontos de parafuso entrepiso (planta 10/15) antes de montar o 4º pav. Perf. Pont#10 14X2 Cab.Flang. Distância 80mm do bordo.'},
+    {id:'4p04',crit:false,label:'Prumo e alinhamento — 4º pav.',desc:'Verificar prumo individual de cada painel e alinhamento do pavimento. O plano superior do 4º pav. define o apoio das tesouras da cobertura — deve estar nivelado.'},
+    {id:'4p05',crit:false,label:'Travejamentos em fita — laje do reservatório',desc:'VE301 e DG301-DG316 conforme planta 08/15. Fitas parafusadas POR BAIXO no plano horizontal antes de cobrir com OSB.'},
+    {id:'4p06',crit:false,label:'OSB sobre 4º pav. — laje do reservatório',desc:'OSB 18,3mm conforme planta 09/15. Banda acústica antes das placas. Parafusos 15cm periferia / 30cm entre placas. Juntas 3mm. Rebaixo 1500mm.'}
+  ]},
+  {label:'Reservatório', items:[
+    {id:'res01',crit:true,label:'Recebimento e conferência dos painéis do reservatório',desc:'Painéis P501 a P524 conforme planta 12/15. Verificar todos conforme lista: P501, P502, P503, P504, P505, P506, P507, P508, P509, P510, P511, P512, P513, P514, P515, P516, P517, P518, P519, P520, P521, P522, P523, P524.'},
+    {id:'res02',crit:true,label:'Fixação dos painéis do reservatório na laje do 4º pav.',desc:'Fixação conforme detalhe construtivo pág. 10. Parafuso Perf. Pont#10 14X2 Cab.Flang. Distância 80mm+80mm do bordo. Verificar TODOS os pontos de fixação perimetrais antes de avançar.'},
+    {id:'res03',crit:true,label:'REFORÇO: Treliças VR1 e VR2 da laje do reservatório',desc:'VR1-1 (6un): 1 parafuso extra · VR1-2 (5un): 1 parafuso extra · VR2-1 (9un): 2 parafusos extras · VR2-2 (2un): 2 parafusos extras · VR2-3 (2un): 2 parafusos extras · VR2-4 (2un): 2 parafusos extras. Usar PARAFUSO PHILIPS.'},
+    {id:'res04',crit:true,label:'Travejamento em fita da laje do reservatório',desc:'Fitas de contraventamento horizontal conforme planta 11/15. Fitas parafusadas POR BAIXO das treliças VR1 e VR2 no plano horizontal. Conferir antes de instalar OSB.'},
+    {id:'res05',crit:false,label:'OSB da laje do reservatório — 18,3mm',desc:'OSB transversal às treliças VR1 e VR2. Espaçamento parafusos: 15cm periferia / 30cm entre placas. Junta 3mm. Banda acústica antes. Ver detalhe construtivo pág. 11 (planta 11/15).'},
+    {id:'res06',crit:false,label:'Impermeabilização compatível com LSF — paredes',desc:'Antes do fechamento das paredes P501-P524, verificar aplicação de impermeabilização compatível com perfis de aço. Ver detalhe construtivo pág. 5. O reservatório exige proteção especial contra umidade.'}
+  ]},
+  {label:'Cobertura', items:[
+    {id:'cob01',crit:true,label:'REFORÇO: Tesouras T1A — 10 tipos, 2 parafusos extras',desc:'T1A-1 (2un), T1A-2 (4un), T1A-3 (2un), T1A-4 (2un), T1A-5 (2un), T1A-6 (2un), T1A-7 (4un), T1A-8 (2un), T1A-9 (2un), T1A-10 (2un) — 2 PARAFUSOS EXTRAS em TODAS as ligações, AMBOS OS LADOS. Usar PARAFUSO PHILIPS.'},
+    {id:'cob02',crit:true,label:'REFORÇO: Tesouras T1B-1 — 1 parafuso extra',desc:'T1B-1: 8 unidades — 1 PARAFUSO EXTRA em TODAS as ligações, AMBOS OS LADOS. Usar PARAFUSO PHILIPS. Conferir todas as 8 unidades.'},
+    {id:'cob03',crit:true,label:'Travejamento em fita da cobertura — 4 regiões diagonais',desc:'4 regiões de travejamento em fita em diagonal (X) conforme planta 13/15. Fitas parafusadas POR BAIXO das tesouras no plano horizontal. Ver perspectiva de travejamento em fita na prancha 13/15.'},
+    {id:'cob04',crit:true,label:'Terças com chapuz — espaçamento OBRIGATÓRIO 1,20m',desc:'Terças fixadas COM CHAPUZ conforme detalhe construtivo pág. 14. Espaçamento OBRIGATÓRIO de 1,20m conforme orientação do fabricante. NÃO usar cantoneiras como substituto — gera cobrança extra de reposição de materiais.'},
+    {id:'cob05',crit:true,label:'REFORÇO: VE401 — painel especial de cobertura',desc:'VE401: 1 unidade — 1 PARAFUSO EXTRA em TODAS as ligações, AMBOS OS LADOS. Usar PARAFUSO PHILIPS.'},
+    {id:'cob06',crit:false,label:'Direção e posição das tesouras conforme planta 13/15',desc:'A seta junto à tesoura indica o lado com o número impresso. Conferir orientação de CADA tesoura antes de fixar definitivamente. Ver espaçamentos: R1=1023mm, R2=1143mm, R3=643mm (e variações) conforme cotas da planta 14/15.'},
+    {id:'cob07',crit:false,label:'Espaçamentos R1 a R5 das terças — conferência de cotas',desc:'Conferir cada espaçamento entre terças conforme planta 14/15: R1, R2, R3, R4, R5 com as cotas exatas. Não inverter posições. Erros de espaçamento afetam a distribuição de carga das telhas.'},
+    {id:'cob08',crit:false,label:'Registro fotográfico completo da cobertura',desc:'Fotografar cobertura completa antes do fechamento com telhas. Incluir: detalhe do travejamento em fita, fixação das terças com chapuz, espaçamentos R1-R5, e painéis de beiral/empena. Documentar para arquivo de obra.'}
+  ]},
+  {label:'Reforços', items:[]}
+];
+
+const REFORCO_GRUPOS = [
+  {group:'1º pav. — vergas · 1 parafuso extra · Philips', paraf:1, note:'Nas vergas · ambos os lados', items:['P102','P103','P105','P106','P108','P109','P110','P114','P115','P117','P118','P120','P121','P123','P124','P126','P141','P146']},
+  {group:'2º pav. — vergas · 1 parafuso extra · Philips', paraf:1, note:'Nas vergas · ambos os lados', items:['P202','P203','P205','P206','P208','P209','P210','P214','P215','P217','P218','P220','P221','P223','P224','P226','P241','P246']},
+  {group:'3º pav. — vergas · 1 parafuso extra · Philips', paraf:1, note:'Nas vergas · ambos os lados', items:['P302','P303','P305','P306','P308','P309','P310','P314','P315','P317','P318','P320','P321','P323','P324','P326','P341','P346']},
+  {group:'4º pav. — vergas · 1 parafuso extra · Philips', paraf:1, note:'Nas vergas · ambos os lados', items:['P402','P403','P405','P406','P408','P409','P410','P414','P415','P417','P418','P420','P421','P423','P424','P426','P441','P446']},
+  {group:'Painéis especiais (PE) — 2 parafusos extras · Philips', paraf:2, note:'Todas as ligações · ambos os lados', items:['PE104','PE105','PE106','PE107','PE201','PE202','PE203','PE204','PE301','PE302','PE303','PE304']},
+  {group:'Painéis VE — 1 parafuso extra · Philips', paraf:1, note:'Todas as ligações · ambos os lados', items:['VE101','VE201','VE301','VE401']},
+  {group:'Treliças VR1 — reservatório · 1 parafuso extra', paraf:1, note:'Todas as ligações · ambos os lados', items:['VR1-1 (6un)','VR1-2 (5un)']},
+  {group:'Treliças VR2 — reservatório · 2 parafusos extras', paraf:2, note:'Todas as ligações · ambos os lados', items:['VR2-1 (9un)','VR2-2 (2un)','VR2-3 (2un)','VR2-4 (2un)']},
+  {group:'Tesouras T1A — cobertura · 2 parafusos extras', paraf:2, note:'Todas as ligações · ambos os lados', items:['T1A-1 (2un)','T1A-2 (4un)','T1A-3 (2un)','T1A-4 (2un)','T1A-5 (2un)','T1A-6 (2un)','T1A-7 (4un)','T1A-8 (2un)','T1A-9 (2un)','T1A-10 (2un)']},
+  {group:'Tesouras T1B — cobertura · 1 parafuso extra', paraf:1, note:'Todas as ligações · ambos os lados', items:['T1B-1 (8un)']},
+  {group:'Treliças V1E e V1F — 3 parafusos extras (máximo reforço)', paraf:3, note:'Todas as ligações · ambos os lados', items:['V1E-1 (3un)','V1F-1 (3un)']},
+];
+
+// ── STORAGE ───────────────────────────────────────────────────────────────────
+function save(){
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    const now = new Date();
+    document.getElementById('save-status').textContent =
+      'Salvo automaticamente às ' + now.toLocaleTimeString('pt-BR');
+  }catch(e){}
+}
+
+function load(){
+  try{
+    const d = localStorage.getItem(STORAGE_KEY);
+    if(d){ state = JSON.parse(d); }
+  }catch(e){}
+}
+
+// ── COUNTS ────────────────────────────────────────────────────────────────────
+function countAll(){
+  let total=0, done=0;
+  TABS.slice(0,8).forEach(t=>t.items.forEach(i=>{
+    total++; if(state.checks[i.id]) done++;
+  }));
+  REFORCO_GRUPOS.forEach(g=>g.items.forEach(p=>{
+    const id='rf_'+p.replace(/[^a-zA-Z0-9]/g,'_');
+    total++; if(state.checks[id]) done++;
+  }));
+  return {total, done};
+}
+
+function updateProgress(){
+  const {total, done} = countAll();
+  const pct = total>0 ? Math.round(done/total*100) : 0;
+  document.getElementById('pct').textContent = pct+'%';
+  document.getElementById('bar').style.width = pct+'%';
+  document.getElementById('prog-sub').textContent = done+' de '+total+' itens concluídos';
+  document.querySelectorAll('.tab').forEach((t,i)=>{
+    if(i===8) return;
+    const tab = TABS[i];
+    const tc = tab.items.filter(it=>state.checks[it.id]).length;
+    const isActive = t.classList.contains('active');
+    t.classList.toggle('done', tc===tab.items.length && tc>0);
+  });
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function renderTab(idx){
+  const el = document.getElementById('content');
+  if(idx===8){ renderReforcos(el); return; }
+  const tab = TABS[idx];
+  let html = '';
+
+  const alerts = {
+    0:'<b>Base crítica:</b> A fixação no radier define toda a estrutura. Não iniciar montagem dos painéis sem aprovação desta etapa pelo RT.',
+    1:'<b>Atenção:</b> Para pré-montagem usar SOMENTE parafuso ponta agulha. Reforços com parafuso Philips somente após alinhamento e aprovação. Verificar lista de reforços painel a painel.',
+    2:'<b>OSB:</b> Instalar banda acústica ANTES do OSB. Fitas de contraventamento por baixo das treliças. Não fechar entrepiso sem chapas duplas L verificadas.',
+    7:'<b>Terças:</b> Espaçamento OBRIGATÓRIO de 1,20m com chapuz. Uso de cantoneiras ou menor espaçamento gera cobrança extra de reposição de materiais conforme contrato.'
+  };
+  if(alerts[idx]){
+    html += `<div class="alert"><span class="alert-icon">⚠</span><span>${alerts[idx]}</span></div>`;
+  }
+
+  const crit = tab.items.filter(i=>i.crit);
+  const norm = tab.items.filter(i=>!i.crit);
+
+  if(crit.length){
+    html += `<div class="section"><div class="section-title">Itens críticos <span class="badge b-red">obrigatório</span></div>`;
+    crit.forEach(i=>{ html += renderItem(i); });
+    html += `</div>`;
+  }
+  if(norm.length){
+    html += `<div class="section"><div class="section-title">Verificações complementares</div>`;
+    norm.forEach(i=>{ html += renderItem(i); });
+    html += `</div>`;
+  }
+
+  el.innerHTML = html;
+  bindItems();
+}
+
+function renderItem(i){
+  const checked = !!state.checks[i.id];
+  const hasObs = !!state.obs[i.id];
+  return `<div class="check-item${checked?' checked':''}${i.crit?' critical':''}" data-id="${i.id}">
+    <div class="checkbox">${checked?'✓':''}</div>
+    <div class="check-text">
+      <div class="check-label">${i.label}${i.crit?'<span class="badge b-red">crítico</span>':''}${hasObs?'<span class="badge b-blue">obs</span>':''}</div>
+      <div class="check-desc">${i.desc}</div>
+    </div>
+    <button class="obs-btn" data-id="${i.id}" data-label="${i.label.replace(/"/g,'&quot;')}" data-desc="${i.desc.replace(/"/g,'&quot;')}">obs.</button>
+  </div>`;
+}
+
+function renderReforcos(el){
+  let html = `<div class="alert"><span class="alert-icon">⚠</span><span>Conferir CADA painel individualmente. Usar <b>PARAFUSO PHILIPS</b> em todos os reforços. Verificar os dois lados do painel. Clique no painel para marcar como conferido.</span></div>`;
+  REFORCO_GRUPOS.forEach(g=>{
+    html += `<div class="section"><div class="section-title">${g.group} <span class="badge b-amber">${g.paraf} paraf. extra${g.paraf>1?'s':''}</span></div>
+    <div class="painel-grid">`;
+    g.items.forEach(p=>{
+      const id = 'rf_'+p.replace(/[^a-zA-Z0-9]/g,'_');
+      const done = !!state.checks[id];
+      html += `<div class="painel-btn${done?' p-done':''}" data-id="${id}">${p}${done?'<br>✓':''}</div>`;
+    });
+    html += `</div></div>`;
+  });
+  el.innerHTML = html;
+  el.querySelectorAll('.painel-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const id = btn.dataset.id;
+      state.checks[id] = !state.checks[id];
+      const p = btn.textContent.replace('✓','').replace(/\n/g,'').trim();
+      btn.classList.toggle('p-done', state.checks[id]);
+      btn.innerHTML = state.checks[id] ? p+'<br>✓' : p;
+      save(); updateProgress();
+    });
+  });
+}
+
+function bindItems(){
+  document.querySelectorAll('.check-item').forEach(el=>{
+    el.addEventListener('click',(e)=>{
+      if(e.target.classList.contains('obs-btn')) return;
+      const id = el.dataset.id;
+      state.checks[id] = !state.checks[id];
+      el.classList.toggle('checked', state.checks[id]);
+      el.querySelector('.checkbox').textContent = state.checks[id]?'✓':'';
+      save(); updateProgress();
+    });
+  });
+  document.querySelectorAll('.obs-btn').forEach(btn=>{
+    btn.addEventListener('click',(e)=>{
+      e.stopPropagation();
+      openModal(btn.dataset.id, btn.dataset.label, btn.dataset.desc);
+    });
+  });
+}
+
+// ── MODAL ─────────────────────────────────────────────────────────────────────
+function openModal(id, title, desc){
+  currentModalId = id;
+  document.getElementById('m-title').textContent = title;
+  document.getElementById('m-desc').textContent = desc;
+  document.getElementById('m-obs').value = state.obs[id] || '';
+  document.getElementById('modal').classList.add('open');
+  document.getElementById('m-obs').focus();
+}
+function closeModal(){
+  document.getElementById('modal').classList.remove('open');
+  currentModalId = null;
+}
+function saveObs(){
+  if(currentModalId){
+    const val = document.getElementById('m-obs').value.trim();
+    if(val) state.obs[currentModalId] = val;
+    else delete state.obs[currentModalId];
+    save();
+    closeModal();
+    renderTab(activeTab);
+    updateProgress();
+  }
+}
+
+// ── EXPORT ────────────────────────────────────────────────────────────────────
+function exportTXT(){
+  const {total, done} = countAll();
+  const rt = document.getElementById('i-rt').value || 'Não informado';
+  const dt = document.getElementById('i-dt').value || new Date().toLocaleDateString('pt-BR');
+  const etapa = document.getElementById('i-etapa').value || 'Não informada';
+  const sign = document.getElementById('i-sign').value || '';
+  let txt = '='.repeat(60)+'\n';
+  txt += 'RELATÓRIO DE CONTROLE DE EXECUÇÃO — PRÉDIO MÉTRIL\n';
+  txt += 'LIGHT STEEL FRAME — CenterSteel — Projeto 241220\n';
+  txt += '='.repeat(60)+'\n\n';
+  txt += `Obra: Alojamento Araguari LTDA\n`;
+  txt += `Endereço: Rua Luiz Leonardo de Paula, 239 · Quirinópolis-GO\n`;
+  txt += `Responsável técnico: ${rt}\n`;
+  txt += `Assinatura/CREA: ${sign}\n`;
+  txt += `Data início: ${dt} · Etapa: ${etapa}\n`;
+  txt += `Gerado em: ${new Date().toLocaleString('pt-BR')}\n`;
+  txt += `Progresso: ${done}/${total} itens (${Math.round(done/total*100)}%)\n\n`;
+
+  TABS.slice(0,8).forEach(tab=>{
+    const done_tab = tab.items.filter(i=>state.checks[i.id]).length;
+    txt += '-'.repeat(50)+'\n';
+    txt += `${tab.label.toUpperCase()} — ${done_tab}/${tab.items.length}\n`;
+    txt += '-'.repeat(50)+'\n';
+    tab.items.forEach(i=>{
+      const st = state.checks[i.id] ? '[✓]' : '[ ]';
+      const crit = i.crit ? ' [CRÍTICO]' : '';
+      txt += `${st}${crit} ${i.label}\n`;
+      if(state.obs[i.id]) txt += `    ↳ OBS: ${state.obs[i.id]}\n`;
+    });
+    txt += '\n';
+  });
+
+  txt += '='.repeat(50)+'\n';
+  txt += 'LISTA DE REFORÇOS — PAINEL A PAINEL\n';
+  txt += '='.repeat(50)+'\n\n';
+  REFORCO_GRUPOS.forEach(g=>{
+    txt += `${g.group}\n`;
+    g.items.forEach(p=>{
+      const id = 'rf_'+p.replace(/[^a-zA-Z0-9]/g,'_');
+      txt += `  ${state.checks[id]?'[✓]':'[ ]'} ${p}\n`;
+    });
+    txt += '\n';
+  });
+
+  const blob = new Blob([txt],{type:'text/plain;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'checklist_predioMetril_'+new Date().toISOString().slice(0,10)+'.txt';
+  a.click();
+}
+
+function exportPrint(){ window.print(); }
+
+function limpar(){
+  if(!confirm('Resetar todo o checklist? Esta ação não pode ser desfeita.')) return;
+  state = {checks:{}, obs:{}, info:{}};
+  save();
+  renderTab(activeTab);
+  updateProgress();
+}
+
+function saveInfo(){
+  state.info = {
+    rt: document.getElementById('i-rt').value,
+    dt: document.getElementById('i-dt').value,
+    etapa: document.getElementById('i-etapa').value,
+    sign: document.getElementById('i-sign').value,
+    ts: document.getElementById('i-ts').value,
+  };
+  save();
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+load();
+
+// Restore info fields
+if(state.info){
+  if(state.info.rt) document.getElementById('i-rt').value = state.info.rt;
+  if(state.info.dt) document.getElementById('i-dt').value = state.info.dt;
+  if(state.info.etapa) document.getElementById('i-etapa').value = state.info.etapa;
+  if(state.info.sign) document.getElementById('i-sign').value = state.info.sign;
+  if(state.info.ts) document.getElementById('i-ts').value = state.info.ts;
+}
+document.getElementById('i-ts').placeholder = new Date().toLocaleString('pt-BR');
+
+// Tabs
+document.querySelectorAll('.tab').forEach(t=>{
+  t.addEventListener('click',()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    activeTab = parseInt(t.dataset.tab);
+    renderTab(activeTab);
+  });
+});
+
+// Modal close on overlay click
+document.getElementById('modal').addEventListener('click',(e)=>{
+  if(e.target === document.getElementById('modal')) closeModal();
+});
+
+// Keyboard
+document.addEventListener('keydown',(e)=>{
+  if(e.key==='Escape') closeModal();
+});
+
+renderTab(0);
+updateProgress();
+</script>
+</body>
+</html>
